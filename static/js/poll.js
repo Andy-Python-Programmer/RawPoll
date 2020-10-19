@@ -2,9 +2,15 @@ const body = document.querySelector("body");
 const id = window.location.href.split("/poll/");
 
 var prevData = {};
+var curCharInstance;
 
 function chartShow(data) {
     let pollChart = document.getElementById("poll").getContext('2d');
+     
+    if (curCharInstance != null) {
+        curCharInstance.destroy();
+    } 
+
     let vals = {};
 
     for (var i = 0; i < data.options.split(",").length; i++) {
@@ -16,7 +22,7 @@ function chartShow(data) {
     pollChart.canvas.parentNode.style.height = '500px';
     pollChart.canvas.parentNode.style.width = '500px';
 
-    new Chart(pollChart, {
+    curCharInstance = new Chart(pollChart, {
         type: 'doughnut',
         data: {
             labels: Object.keys(vals),
