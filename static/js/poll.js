@@ -48,7 +48,7 @@ function chartShow(data) {
     });
 }
 
-function updateData(data) {
+function updateData() {
     fetch(id[0] + "/api/poll/" + id[1])
 
     .then(response => response.json())
