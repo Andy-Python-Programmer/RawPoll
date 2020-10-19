@@ -13,6 +13,11 @@ pub struct PollTemplate {
     pub options: String
 }
 
+#[derive(serde::Serialize)]
+pub struct PollNew {
+    pub id: String
+}
+
 impl Templating {
     pub fn new() -> Templating {
         return Templating {};

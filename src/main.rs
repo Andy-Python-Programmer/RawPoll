@@ -2,16 +2,19 @@
 
 #[macro_use]
 extern crate rocket;
+extern crate uuid;
 
 mod poll;
 mod templating;
+
+use uuid::Uuid;
 
 use rocket::{ State };
 
 use rocket_contrib::json::Json;
 use rocket_contrib::templates::{ Template };
 
-use templating::{ Templating, PollTemplate };
+use templating::{ Templating, PollTemplate, PollNew };
 use templating::{ File, Page };
 
 use poll::Poll;
@@ -41,7 +44,6 @@ fn api_vote(database: State<sled::Db>, id: String, choice: String) -> Json<PollT
     println!("Parsed: {:?}", parsed);
 
     tree.insert("options", parsed.as_str()).unwrap();
-
 
     return Json(
         PollTemplate {
@@ -76,6 +78,30 @@ fn static_files(file: File) -> Page {
     return Templating::new().render_static(file);
 }
 
+#[get("/api/new?<title>&<description>&<options>")]
+fn api_new(database: State<sled::Db>, title: String, description: String, options: String) -> Json<PollNew> {
+    let id = Uuid::new_v4();
+
+    let value: sled::Tree = database.open_tree(id.to_string()).unwrap();
+
+    value.insert("title", title.as_str()).unwrap();
+    value.insert("description", description.as_str()).unwrap();
+    value.insert("options", options.as_str()).unwrap();
+
+    let context = PollNew {
+        id: id.to_string()
+    };
+
+    println!("UUID: {}", id.to_string());
+
+    return Json(context);
+}
+
+#[get("/new")]
+fn new_poll() -> Page {
+    return Templating::new().render("new.html");
+}
+
 fn main() {
     let db: sled::Db = sled::open("polls").expect("open");
     let value: sled::Tree = db.open_tree("id").unwrap();
@@ -85,7 +111,13 @@ fn main() {
     value.insert("options", "a: 1, b: 1, c: 1").unwrap();
     
     let app = rocket::ignite()
-        .mount("/", routes![static_files, index, api_vote, api_list, vote])
+        .mount("/", routes![
+            static_files, 
+            index, 
+            api_vote, vote, 
+            api_list,
+            api_new, new_poll
+        ])
         .attach(Template::fairing())
         .manage(db);
 
