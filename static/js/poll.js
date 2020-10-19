@@ -62,6 +62,13 @@ function updateData() {
     })
 }
 
+function copy() {
+    var copyText = document.getElementById("copy-input");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    document.execCommand("copy");
+}
+
 function main() {
     fetch(id[0] + "/api/poll/" + id[1])
     .then(response => response.json())
@@ -73,7 +80,7 @@ function main() {
 
         <span class="input-group-btn">
             <button class="btn btn-default" type="button" id="copy-button"
-                data-toggle="tooltip" data-placement="button"
+                data-toggle="tooltip" data-placement="button" onClick="copy()"
                 title="Copy to Clipboard">
               Copy
             </button>
