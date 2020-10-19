@@ -1,4 +1,5 @@
 const body = document.querySelector("body");
+const opts = document.querySelector(".opts");
 const id = window.location.href.split("/poll/");
 
 var prevData = {};
@@ -19,8 +20,8 @@ function chartShow(data) {
         vals[value[0].trim()] = value[1].trim()
     };
 
-    pollChart.canvas.parentNode.style.height = '500px';
-    pollChart.canvas.parentNode.style.width = '500px';
+    pollChart.canvas.parentNode.style.height = window.innerHeight / 2 + "px";
+    pollChart.canvas.parentNode.style.width = window.innerHeight / 2 + "px";
 
     curCharInstance = new Chart(pollChart, {
         type: 'doughnut',
@@ -65,7 +66,21 @@ function main() {
     fetch(id[0] + "/api/poll/" + id[1])
     .then(response => response.json())
     .then(data => {
-        body.innerHTML += `
+        const valueLink = document.querySelector(".value");
+
+        valueLink.innerHTML = `
+        <input type="text" class="form-control" value="${window.location.href}" placeholder="Some path" id="copy-input" readonly>
+
+        <span class="input-group-btn">
+            <button class="btn btn-default" type="button" id="copy-button"
+                data-toggle="tooltip" data-placement="button"
+                title="Copy to Clipboard">
+              Copy
+            </button>
+        </span>
+        `
+
+        opts.innerHTML += `
         <h1>Title: ${data.title}</h1>
         <h1>Description: ${data.description}</h1>
         `
@@ -74,8 +89,8 @@ function main() {
         for (var i = 0; i < data.options.split(",").length; i++) {
             const value = data.options.split(",")[i].split(":");
     
-            body.innerHTML += `
-            <button onClick="update(this)" id="${value[0].trim()}">${value[0].trim()}</button>
+            opts.innerHTML += `
+            <button class="btn btn-primary" onClick="update(this)" id="${value[0].trim()}">${value[0].trim()}</button>
             `
         };
     });
