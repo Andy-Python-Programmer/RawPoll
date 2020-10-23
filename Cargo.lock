@@ -275,7 +275,7 @@ dependencies = [
 [[package]]
 name = "dino"
 version = "0.1.1"
-source = "git+https://github.com/Andy-Python-Programmer/dino#811d7b52f5d02c6f41782ea2f11a56c2c9399f26"
+source = "git+https://github.com/Andy-Python-Programmer/dino#d880b615be0c24cb8da5bafe699fd38cff810437"
 dependencies = [
  "serde_json",
 ]

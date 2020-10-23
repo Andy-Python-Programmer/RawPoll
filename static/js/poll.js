@@ -109,7 +109,7 @@ function main() {
             console.log(value);
     
             opts.innerHTML += `
-            <button class="btn btn-primary" onClick="update(this)" id="${value[0].trim()}">${value[0].trim()}</button>
+            <button class="btn btn-primary" onClick="update(this)" id="${value}">${value}</button>
             `
         };
     });

@@ -27,8 +27,10 @@ fn index() -> Page {
 
 #[get("/api/poll/<id>/<choice>")]
 fn api_vote(database: State<PollState>, id: String, choice: String) -> String {
-    let mut tree = dino::Tree::from(database.state.lock().unwrap().find(id.as_str()).unwrap().to_string().as_str());
-    let mut choices = dino::Tree::from(tree.find("options").unwrap().to_string().as_str());
+    let db = &database.state;
+
+    let mut tree = db.lock().unwrap().find(id.as_str()).unwrap();
+    let mut choices = tree.find("options").unwrap();
 
     println!("Title: {:?}", tree.find("title").unwrap());
     println!("Description: {:?}", tree.find("description").unwrap());
@@ -39,13 +41,14 @@ fn api_vote(database: State<PollState>, id: String, choice: String) -> String {
     choices.insert(&choice, (cur_opts + 1).to_string().as_str());
 
     tree.insert_tree("options", choices);
-    database.state.lock().unwrap().insert_tree(id.as_str(), tree);
+    db.lock().unwrap().insert_tree(id.as_str(), tree);
 
-    return database.state.lock().unwrap().find(id.as_str()).unwrap().to_string();
+    return db.lock().unwrap().find(id.as_str()).unwrap().to_string();
 }
 
 #[get("/api/poll/<id>")]
 fn api_list(database: State<PollState>, id: String) -> String {
+    println!("{}", database.state.lock().unwrap().find(id.as_str()).unwrap().to_string());
     return database.state.lock().unwrap().find(id.as_str()).unwrap().to_string();
 }
 
