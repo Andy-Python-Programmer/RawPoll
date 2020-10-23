@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:image" content="http://rawpoll.herokuapp.com/static/images/logo.png">
+    <meta property="og:description" content="Raw poll makes it easy to create new polls in seconds and free and open source!">
+    <meta property="og:title" content="Raw Poll">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
     <title>Raw Poll</title>
 </head>
@@ -32,14 +35,5 @@
             <a class="nav-link" href="/new/">Create a Poll!</a>
         </center>
     </div>
-    <script>
-        const head = document.querySelector("head");
-
-        head.innerHTML += `
-        <meta property="og:image" content="${window.location.href.split("/")[2]}/static/images/logo.png">
-        <meta property="og:description" content="Raw poll makes it easy to create new polls in seconds and free and open source!">
-        <meta property="og:title" content="Raw Poll">
-        `
-    </script>
 </body>
 </html>
