@@ -4,7 +4,6 @@
 extern crate rocket;
 extern crate uuid;
 
-mod poll;
 mod templating;
 
 use uuid::Uuid;
@@ -14,10 +13,12 @@ use rocket::{ State };
 use rocket_contrib::json::Json;
 use rocket_contrib::templates::{ Template };
 
-use templating::{ Templating, PollTemplate, PollNew };
+use templating::{ Templating, PollNew };
 use templating::{ File, Page };
 
-use poll::Poll;
+struct PollState {
+    pub state: std::sync::Mutex<dino::Database>
+}
 
 #[get("/")]
 fn index() -> Page {
@@ -25,47 +26,27 @@ fn index() -> Page {
 }
 
 #[get("/api/poll/<id>/<choice>")]
-fn api_vote(database: State<sled::Db>, id: String, choice: String) -> Json<PollTemplate> {
-    let tree = Poll::tree(&database, &id);
-    let mut result = Poll::from(&database, &id);
+fn api_vote(database: State<PollState>, id: String, choice: String) -> String {
+    let mut tree = dino::Tree::from(database.state.lock().unwrap().find(id.as_str()).unwrap().to_string().as_str());
+    let mut choices = dino::Tree::from(tree.find("options").unwrap().to_string().as_str());
 
-    println!("Title: {:?}", result.title);
-    println!("Description: {:?}", result.description);
-    println!("Options: {:?}", result.options);
+    println!("Title: {:?}", tree.find("title").unwrap());
+    println!("Description: {:?}", tree.find("description").unwrap());
+    println!("Options: {}", tree.find("options").unwrap().to_string());
 
-    println!("Option Current: {:?}", result.options.get(&choice));
+    let cur_opts = str::replace(choices.find(&choice).unwrap().to_string().as_str(), '"', "").parse::<usize>().unwrap();
 
-    *result.options.get_mut(&choice).unwrap() += 1;
+    choices.insert(&choice, (cur_opts + 1).to_string().as_str());
 
-    println!("Option After: {:?}", result.options);
+    tree.insert_tree("options", choices);
+    database.state.lock().unwrap().insert_tree(id.as_str(), tree);
 
-    let parsed = Poll::to(result.options);
-
-    println!("Parsed: {:?}", parsed);
-
-    tree.insert("options", parsed.as_str()).unwrap();
-
-    return Json(
-        PollTemplate {
-            title: result.title,
-            description: result.description,
-            options: parsed,
-        }
-    );
+    return database.state.lock().unwrap().find(id.as_str()).unwrap().to_string();
 }
 
 #[get("/api/poll/<id>")]
-fn api_list(database: State<sled::Db>, id: String) -> Json<PollTemplate> {
-    let result = Poll::from(&database, &id);
-    let parsed = Poll::to(result.options);
-
-    let context = PollTemplate {
-        title: result.title,
-        description: result.description,
-        options: parsed
-    };
-
-    return Json(context);
+fn api_list(database: State<PollState>, id: String) -> String {
+    return database.state.lock().unwrap().find(id.as_str()).unwrap().to_string();
 }
 
 #[get("/poll/<_id>")]
@@ -79,14 +60,18 @@ fn static_files(file: File) -> Page {
 }
 
 #[get("/api/new?<title>&<description>&<options>")]
-fn api_new(database: State<sled::Db>, title: String, description: String, options: String) -> Json<PollNew> {
+fn api_new(database: State<PollState>, title: String, description: String, options: String) -> Json<PollNew> {
     let id = Uuid::new_v4();
 
-    let value: sled::Tree = database.open_tree(id.to_string()).unwrap();
+    let mut value: dino::Tree = dino::Tree::new();
+    println!("{}", ("{".to_string() + &options + &"}".to_string()).as_str());
+    let data: dino::Tree = dino::Tree::from(("{".to_string() + &options + &"}".to_string()).as_str());
 
-    value.insert("title", title.as_str()).unwrap();
-    value.insert("description", description.as_str()).unwrap();
-    value.insert("options", options.as_str()).unwrap();
+    value.insert("title", title.as_str());
+    value.insert("description", description.as_str());
+    value.insert_tree("options", data);
+
+    database.state.lock().unwrap().insert_tree(id.to_string().as_str(), value);
 
     let context = PollNew {
         id: id.to_string()
@@ -103,12 +88,21 @@ fn new_poll() -> Page {
 }
 
 fn main() {
-    let db: sled::Db = sled::open("polls").expect("open");
-    let value: sled::Tree = db.open_tree("id").unwrap();
+    let mut db: dino::Database = dino::Database::new("polls.dino");
+    db.load();
 
-    value.insert("title", "Amazing title!").unwrap();
-    value.insert("description", "Amazing description!").unwrap();
-    value.insert("options", "a: 1, b: 1, c: 1").unwrap();
+    let mut value: dino::Tree = dino::Tree::new();
+    let mut data: dino::Tree = dino::Tree::new();
+
+    data.insert("a", "1");
+    data.insert("b", "1");
+    data.insert("c", "1");
+
+    value.insert("title", "Amazing title!");
+    value.insert("description", "Amazing description!");
+    value.insert_tree("options", data);
+
+    db.insert_tree("id", value);
     
     let app = rocket::ignite()
         .mount("/", routes![
@@ -119,7 +113,9 @@ fn main() {
             api_new, new_poll
         ])
         .attach(Template::fairing())
-        .manage(db);
+        .manage(PollState {
+            state: std::sync::Mutex::new(db)
+        });
 
     app.launch();
 }

@@ -5,20 +5,20 @@ const id = window.location.href.split("/poll/");
 var prevData = {};
 var curCharInstance;
 
+Object.size = function(obj) {
+    var size = 0, key;
+    for (key in obj) {
+        if (obj.hasOwnProperty(key)) size++;
+    }
+    return size;
+};
+
 function chartShow(data) {
     let pollChart = document.getElementById("poll").getContext('2d');
      
     if (curCharInstance != null) {
         curCharInstance.destroy();
-    } 
-
-    let vals = {};
-
-    for (var i = 0; i < data.options.split(",").length; i++) {
-        const value = data.options.split(",")[i].split(":");
-
-        vals[value[0].trim()] = value[1].trim()
-    };
+    }
 
     pollChart.canvas.parentNode.style.height = window.innerHeight / 2 + "px";
     pollChart.canvas.parentNode.style.width = window.innerHeight / 2 + "px";
@@ -26,9 +26,9 @@ function chartShow(data) {
     curCharInstance = new Chart(pollChart, {
         type: 'doughnut',
         data: {
-            labels: Object.keys(vals),
+            labels: Object.keys(data.options),
             datasets: [ {
-                data: Object.values(vals),
+                data: Object.values(data.options),
                 backgroundColor: ['#49A9EA', '#36CAAB']
             }]
         },
@@ -54,7 +54,17 @@ function updateData() {
 
     .then(response => response.json())
     .then(data => {
-        if (prevData !== data.options) {
+        var refresh;
+
+        if (JSON.stringify(data.options) === JSON.stringify(prevData)) {
+            refresh = false;
+        }
+
+        else {
+            refresh = true;
+        }
+
+        if (refresh) {
             prevData = data.options;
 
             chartShow(data);
@@ -93,8 +103,10 @@ function main() {
         `
         updateData();
 
-        for (var i = 0; i < data.options.split(",").length; i++) {
-            const value = data.options.split(",")[i].split(":");
+        for (var i = 0; i < Object.size(data.options); i++) {
+            const value = Object.keys(data.options)[i];
+
+            console.log(value);
     
             opts.innerHTML += `
             <button class="btn btn-primary" onClick="update(this)" id="${value[0].trim()}">${value[0].trim()}</button>

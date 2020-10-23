@@ -317,6 +317,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dino"
+version = "0.1.1"
+source = "git+https://github.com/Andy-Python-Programmer/dino#811d7b52f5d02c6f41782ea2f11a56c2c9399f26"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "error-chain"
 version = "0.12.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1025,6 +1033,7 @@ dependencies = [
 name = "raw-poll"
 version = "0.1.0"
 dependencies = [
+ "dino",
  "indexmap",
  "rocket",
  "rocket_contrib",
