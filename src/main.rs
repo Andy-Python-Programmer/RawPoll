@@ -16,20 +16,14 @@ use rocket_contrib::templates::{ Template };
 use templating::{ Templating, PollNew };
 use templating::{ File, Page };
 
-struct PollState {
-    pub state: std::sync::Mutex<dino::Database>
-}
-
 #[get("/")]
 fn index() -> Page {
     return Templating::new().render("index.html");
 }
 
 #[get("/api/poll/<id>/<choice>")]
-fn api_vote(database: State<PollState>, id: String, choice: String) -> String {
-    let db = &database.state;
-
-    let mut tree = db.lock().unwrap().find(id.as_str()).unwrap();
+fn api_vote(database: State<dino::Database>, id: String, choice: String) -> String {
+    let mut tree = database.find(id.as_str()).unwrap();
     let mut choices = tree.find("options").unwrap();
 
     println!("Title: {:?}", tree.find("title").unwrap());
@@ -41,15 +35,14 @@ fn api_vote(database: State<PollState>, id: String, choice: String) -> String {
     choices.insert(&choice, (cur_opts + 1).to_string().as_str());
 
     tree.insert_tree("options", choices);
-    db.lock().unwrap().insert_tree(id.as_str(), tree);
+    database.insert_tree(id.as_str(), tree);
 
-    return db.lock().unwrap().find(id.as_str()).unwrap().to_string();
+    return database.find(id.as_str()).unwrap().to_string();
 }
 
 #[get("/api/poll/<id>")]
-fn api_list(database: State<PollState>, id: String) -> String {
-    println!("{}", database.state.lock().unwrap().find(id.as_str()).unwrap().to_string());
-    return database.state.lock().unwrap().find(id.as_str()).unwrap().to_string();
+fn api_list(database: State<dino::Database>, id: String) -> String {
+    return database.find(id.as_str()).unwrap().to_string();
 }
 
 #[get("/poll/<_id>")]
@@ -63,7 +56,7 @@ fn static_files(file: File) -> Page {
 }
 
 #[get("/api/new?<title>&<description>&<options>")]
-fn api_new(database: State<PollState>, title: String, description: String, options: String) -> Json<PollNew> {
+fn api_new(database: State<dino::Database>, title: String, description: String, options: String) -> Json<PollNew> {
     let id = Uuid::new_v4();
 
     let mut value: dino::Tree = dino::Tree::new();
@@ -74,7 +67,7 @@ fn api_new(database: State<PollState>, title: String, description: String, optio
     value.insert("description", description.as_str());
     value.insert_tree("options", data);
 
-    database.state.lock().unwrap().insert_tree(id.to_string().as_str(), value);
+    database.insert_tree(id.to_string().as_str(), value);
 
     let context = PollNew {
         id: id.to_string()
@@ -116,9 +109,7 @@ fn main() {
             api_new, new_poll
         ])
         .attach(Template::fairing())
-        .manage(PollState {
-            state: std::sync::Mutex::new(db)
-        });
+        .manage(db);
 
     app.launch();
 }
