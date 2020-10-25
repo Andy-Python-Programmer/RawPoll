@@ -23,16 +23,16 @@ fn index() -> Page {
 
 #[get("/api/poll/<id>/<choice>")]
 fn api_vote(database: State<dino::Database>, id: String, choice: String) -> String {
-    let mut tree = database.find(id.as_str()).unwrap();
-    let mut choices = tree.find("options").unwrap();
+    let mut tree = database.find(id.as_str()).unwrap().to_tree();
+    let mut choices = tree.find("options").unwrap().to_tree();
 
-    println!("Title: {:?}", tree.find("title").unwrap());
-    println!("Description: {:?}", tree.find("description").unwrap());
+    println!("Title: {}", tree.find("title").unwrap());
+    println!("Description: {}", tree.find("description").unwrap());
     println!("Options: {}", tree.find("options").unwrap().to_string());
 
-    let cur_opts = str::replace(choices.find(&choice).unwrap().to_string().as_str(), '"', "").parse::<usize>().unwrap();
+    let cur_opts = choices.find(&choice).unwrap().to_number();
 
-    choices.insert(&choice, (cur_opts + 1).to_string().as_str());
+    choices.insert_number(&choice, cur_opts + 1);
 
     tree.insert_tree("options", choices);
     database.insert_tree(id.as_str(), tree);
@@ -90,9 +90,9 @@ fn main() {
     let mut value: dino::Tree = dino::Tree::new();
     let mut data: dino::Tree = dino::Tree::new();
 
-    data.insert("a", "1");
-    data.insert("b", "1");
-    data.insert("c", "1");
+    data.insert_number("a", 1);
+    data.insert_number("b", 1);
+    data.insert_number("c", 1);
 
     value.insert("title", "Amazing title!");
     value.insert("description", "Amazing description!");
