@@ -3,45 +3,39 @@ use rocket_contrib::json;
 use rocket::State;
 
 use mongodb::{bson::doc, sync::Database};
+use serde::Deserialize;
 
-use serde_json::{ Value, Error };
+#[derive(Deserialize)]
+pub struct Poll {
+    question: String,
+    description: String,
+    options: Vec<String>
+}
 
 #[post("/api/poll", format = "application/json", data = "<poll>")]
-pub fn post(client: State<Database>, poll: String) -> json::JsonValue {
-    let poll_collection = client.collection("polls"); 
+pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue {
+    let poll_collection = client.collection("polls");
 
-    let res: Result<Value, Error> = serde_json::from_str(&poll);
+    let val = poll.into_inner();
 
-    match res {
-        Ok(val) => {
-            let mut document = doc!{
-                "question": val["question"].as_str().unwrap(),
-                "description": val["description"].as_str().unwrap(),
-            };
+    let mut document = doc!{
+        "question": val.question,
+        "description": val.description,
+    };
 
-            let mut options = doc!{};
+    let mut options = doc!{};
 
-            for choice in val["options"].as_array().unwrap() {
-                options.insert(choice.as_str().unwrap(), 1);
-            };
+    for choice in val.options {
+        options.insert(choice, 1);
+    };
 
-            document.insert("options", options);
+    document.insert("options", options);
 
-            println!("{}", &document);
+    println!("{}", &document);
 
-            poll_collection.insert_one(document, None).unwrap();
+    poll_collection.insert_one(document, None).unwrap();
 
-            return json!({
-                "status": "success",
-            });
-        }
-
-        Err(err) => {
-            return json!({
-                "status": "failure",
-                "error": "Invalid JSON data was provided",
-                "logs": err.to_string()
-            });
-        }
-    }
+    return json!({
+        "status": "success",
+    });
 }

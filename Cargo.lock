@@ -1570,6 +1570,7 @@ dependencies = [
  "mongodb",
  "rocket",
  "rocket_contrib",
+ "serde",
  "serde_json",
 ]
 
