@@ -2,7 +2,7 @@ use rocket::*;
 use rocket_contrib::json;
 use rocket::State;
 
-use mongodb::{bson::doc, sync::Database};
+use mongodb::{bson::doc, sync::Database, bson::oid::ObjectId};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -33,9 +33,41 @@ pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue 
 
     println!("{}", &document);
 
-    poll_collection.insert_one(document, None).unwrap();
+    let inserted = poll_collection.insert_one(document, None).unwrap();
+    let id = inserted.inserted_id.as_object_id().unwrap().to_string();
 
     return json!({
         "status": "success",
+        "id": id
     });
+}
+
+#[get("/api/poll/<id>")]
+pub fn get(client: State<Database>, id: String) -> json::JsonValue {
+    let poll_collection = client.collection("polls");
+
+    let res = poll_collection.find_one(Some(
+        doc! {
+            "_id": ObjectId::with_string(id.as_str()).unwrap()
+        }
+    ), None);
+
+    match res {
+        Ok(val) => {
+            let result = val.unwrap();
+
+            return json!({
+                "question": result.get("question"),
+                "description": result.get("description"),
+                "options": result.get("options")
+            })
+        }
+
+        Err(_) => {
+            return json!({
+                "status": "failure",
+                "error": "Cannot find the poll specified!"
+            })
+        }
+    }
 }

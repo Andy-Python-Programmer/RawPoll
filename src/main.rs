@@ -28,7 +28,8 @@ fn main() {
 
     let routes = rocket::routes![
         routes::index::index,
-        routes::poll::post
+        routes::poll::post,
+        routes::poll::get
     ];
 
     let app: rocket::Rocket = rocket::ignite();
