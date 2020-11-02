@@ -5,6 +5,8 @@ use mongodb::options::ResolverConfig;
 
 use mongodb::sync::Client;
 
+use std::env;
+
 use futures::executor::block_on;
 
 mod routes {
@@ -13,8 +15,8 @@ mod routes {
 }
 
 async fn get_client() -> Client {
-    let mongo_url: &str = dotenv_codegen::dotenv!("CLIENT");
-    let options = ClientOptions::parse_with_resolver_config(mongo_url, ResolverConfig::cloudflare()).await;
+    let mongo_url: String = env::var("CLIENT").unwrap();
+    let options = ClientOptions::parse_with_resolver_config(mongo_url.as_str(), ResolverConfig::cloudflare()).await;
 
     let client = Client::with_options(options.unwrap()).unwrap();
 
@@ -22,6 +24,8 @@ async fn get_client() -> Client {
 }
 
 fn main() {
+    dotenv::dotenv().ok();
+
     let routes = rocket::routes![
         routes::index::index,
         routes::poll::post
