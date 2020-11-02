@@ -29,7 +29,10 @@ pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue 
         options.insert(choice, 1);
     };
 
-    document.insert("options", options);
+    document.insert("options", doc! {
+        "types": options,
+        "ips": []
+    });
 
     println!("{}", &document);
 
@@ -38,7 +41,7 @@ pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue 
 
     return json!({
         "status": "success",
-        "id": id
+        "id": &id
     });
 }
 
@@ -59,7 +62,7 @@ pub fn get(client: State<Database>, id: String) -> json::JsonValue {
             return json!({
                 "question": result.get("question"),
                 "description": result.get("description"),
-                "options": result.get("options")
+                "options": result.get("options").unwrap().as_document().unwrap().get("types")
             })
         }
 
