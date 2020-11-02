@@ -1,7 +1,7 @@
 use rocket::*;
 use rocket_contrib::json;
 
-use std::collections::HashMap;
+use indexmap::IndexMap;
 
 use mongodb::{bson::doc, bson::oid::ObjectId, sync::Database};
 
@@ -15,7 +15,7 @@ pub struct PollOption {
 
 #[derive(Debug, Serialize, Deserialize)]
 struct PollDocument {
-    types: HashMap<String, isize>,
+    types: IndexMap<String, isize>,
     ips: Vec<String>
 }
 

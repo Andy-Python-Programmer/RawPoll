@@ -923,6 +923,7 @@ checksum = "55e2e4c765aa53a0424761bf9f41aa7a6ac1efa87238f59560640e27fca028f2"
 dependencies = [
  "autocfg",
  "hashbrown",
+ "serde",
 ]
 
 [[package]]
@@ -1567,6 +1568,7 @@ version = "0.1.0"
 dependencies = [
  "dotenv",
  "futures",
+ "indexmap",
  "mongodb",
  "rocket",
  "rocket_contrib",
