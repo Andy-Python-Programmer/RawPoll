@@ -8,14 +8,16 @@ edition = "2018"
 
 [dependencies]
 rocket = "0.4.5"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-# dino = { path = "C:\\Users\\user\\Desktop\\Andy\\Rust\\dino" }
-dino = { git = "https://github.com/Andy-Python-Programmer/dino" }
-uuid = { version = "0.8", features = ["v4"] }
-
+serde_json = "1.0.59"
+dotenv_codegen = "0.15.0"
+futures = "0.3"
 
 [dependencies.rocket_contrib]
 version = "0.4.5"
 default-features = false
-features = ["handlebars_templates", "tera_templates", "json"]
+features = ["json"]
+
+[dependencies.mongodb]
+version = "1.1.1"
+default-features = false
+features = ["sync"]
