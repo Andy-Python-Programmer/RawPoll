@@ -11,8 +11,11 @@ use futures::executor::block_on;
 
 mod routes {
     pub mod index;
-    pub mod poll;
-    pub mod vote;
+    
+    pub mod api {
+        pub mod poll;
+        pub mod vote;
+    }
 }
 
 async fn get_client() -> Client {
@@ -30,10 +33,10 @@ fn main() {
     let routes = rocket::routes![
         routes::index::index,
 
-        routes::poll::post,
-        routes::poll::get,
+        routes::api::poll::post,
+        routes::api::poll::get,
 
-        routes::vote::post
+        routes::api::vote::post
     ];
 
     let app: rocket::Rocket = rocket::ignite();
