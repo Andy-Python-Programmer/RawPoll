@@ -115,7 +115,7 @@
             xhr.send(JSON.stringify(data));
 
             xhr.onload = () => {
-                window.location.replace("/poll/" + JSON.parse(xhr.responseText).id);
+                window.location.replace("/vote/" + JSON.parse(xhr.responseText).id);
             }
         });
     </script>

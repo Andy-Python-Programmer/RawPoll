@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raw Poll</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <a class="navbar-brand" href="/">
+            <img src="/static/images/logo.svg" width="35px" alt="">
+            Raw Poll
+        </a>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div>
+        <form class="opts">
+
+        </form>
+        <button class="btn btn-primary submit">Submit</button>
+    </div>
+
+    <script>
+        let id = window.location.pathname.split("/");
+
+        id = id[id.length - 1]
+
+        const opts = document.querySelector(".opts");
+
+        fetch("/api/poll/" + id)
+            .then(
+                response => {
+                    response.json().then(function(data) {
+                        Object.entries(data.options).forEach(element => {
+                            const [key, value] = element;
+                            
+                            opts.innerHTML += `
+                            <input type="radio" name="choice" value="${key}">${key}
+                            <br>
+                            `
+                        })
+                    });
+                }
+            );
+
+            const submitOpt = document.querySelector(".submit");
+
+            submitOpt.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                const rbs = document.querySelectorAll('input[name="choice"]');
+                let selectedValue;
+
+                for (const rb of rbs) {
+                    if (rb.checked) {
+                        selectedValue = rb.value;
+                        break;
+                    }
+                }
+                
+                const data = {
+                    id: id,
+                    option: selectedValue
+                }
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.open("POST", "/api/vote/", true);
+                xhr.setRequestHeader('Content-Type', 'application/json');
+
+                xhr.send(JSON.stringify(data));
+
+                xhr.onload = () => {
+                    const body = document.querySelector("body");
+
+                    body.innerHTML += xhr.responseText;
+                }
+            });
+    </script>
+</body>
+</html>

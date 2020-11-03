@@ -13,6 +13,8 @@ mod routes {
 
     pub mod index;
     pub mod create;
+
+    pub mod vote;
     
     pub mod api {
         pub mod poll;
@@ -37,6 +39,7 @@ fn main() {
 
         routes::index::get,
         routes::create::get,
+        routes::vote::get,
 
         routes::api::poll::post,
         routes::api::poll::get,
