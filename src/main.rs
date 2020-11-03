@@ -11,6 +11,7 @@ use futures::executor::block_on;
 
 mod routes {
     pub mod index;
+    pub mod create;
     
     pub mod api {
         pub mod poll;
@@ -31,7 +32,8 @@ fn main() {
     dotenv::dotenv().ok();
 
     let routes = rocket::routes![
-        routes::index::index,
+        routes::index::get,
+        routes::create::get,
 
         routes::api::poll::post,
         routes::api::poll::get,
