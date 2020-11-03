@@ -2,7 +2,6 @@
 
 use mongodb::options::ClientOptions;
 use mongodb::options::ResolverConfig;
-
 use mongodb::sync::Client;
 
 use std::env;
@@ -10,6 +9,8 @@ use std::env;
 use futures::executor::block_on;
 
 mod routes {
+    pub mod public;
+
     pub mod index;
     pub mod create;
     
@@ -32,6 +33,8 @@ fn main() {
     dotenv::dotenv().ok();
 
     let routes = rocket::routes![
+        routes::public::get,
+
         routes::index::get,
         routes::create::get,
 
