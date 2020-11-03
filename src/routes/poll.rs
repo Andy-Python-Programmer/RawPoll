@@ -34,8 +34,6 @@ pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue 
         "ips": []
     });
 
-    println!("{}", &document);
-
     let inserted = poll_collection.insert_one(document, None).unwrap();
     let id = inserted.inserted_id.as_object_id().unwrap().to_string();
 

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raw Poll</title>
+</head>
+<body>
+    <button onClick="test()">Test</button>
+
+    <script>
+        function test() {
+            const obj = {
+                id: "5fa0c0ff00f486fe0018c38a",
+                option: "Vim"
+            }
+
+            const body = document.querySelector("body");
+
+            var xhr = new XMLHttpRequest();
+
+            xhr.open("POST", "http://192.168.1.15:8000/api/vote/", true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+
+            xhr.send(JSON.stringify(obj));
+
+            xhr.onload = () => {
+                body.innerHTML += xhr.responseText;
+            }
+        }
+    </script>
+</body>
+</html>
