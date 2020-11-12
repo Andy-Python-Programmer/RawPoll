@@ -44,8 +44,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let port: &u16 = &app.config().port;
     let address = &app.config().address;
     let server = TcpListener::bind(format!("{}:{}", address, port)).await?;
-    
-    run_websocket(server).await;
 
     let mut db: dino::Database = dino::Database::new("polls.json");
 
@@ -55,6 +53,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .mount("/", routes)
         .manage(db)
         .launch();
+
+    run_websocket(server).await;
 
     Ok(())
 }
