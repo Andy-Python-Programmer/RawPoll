@@ -1,12 +1,11 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use mongodb::options::ClientOptions;
-use mongodb::options::ResolverConfig;
-use mongodb::sync::Client;
+use async_tungstenite::tungstenite::Message;
 
-use std::env;
+use tokio::net::TcpListener;
+use tokio::spawn;
 
-use futures::executor::block_on;
+use futures::SinkExt;
 
 mod routes {
     pub mod public;
@@ -22,16 +21,8 @@ mod routes {
     }
 }
 
-async fn get_client() -> Client {
-    let mongo_url: String = env::var("CLIENT").unwrap();
-    let options = ClientOptions::parse_with_resolver_config(mongo_url.as_str(), ResolverConfig::cloudflare()).await;
-
-    let client = Client::with_options(options.unwrap()).unwrap();
-
-    return client;
-}
-
-fn main() {
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
 
     let routes = rocket::routes![
@@ -48,13 +39,37 @@ fn main() {
         routes::api::vote::post
     ];
 
-    let app: rocket::Rocket = rocket::ignite();
-    let client: Client = block_on(get_client());
+    let port: u16 = 8000;
+    let server = TcpListener::bind(format!("127.0.0.1:{}", port)).await?;
 
-    let db = client.database("raw_poll");
+    spawn(async move {
+        loop {
+            match server.accept().await {
+                Ok((socket, addr)) => {
+                    let mut ws_stream = async_tungstenite::tokio::accept_async(socket)
+                        .await
+                        .expect("Error during the websocket handshake occurred");
+
+                    ws_stream.send(Message::Text("OK".to_owned())).await.unwrap();
+
+                    println!("New client: {:?}", addr);
+                },
+                Err(e) => {
+                    println!("Couldn't get client: {:?}", e);
+                },
+            }
+        }
+    });
+
+    let app: rocket::Rocket = rocket::ignite();
+    let mut db: dino::Database = dino::Database::new("polls.json");
+
+    db.load();
 
     app
         .mount("/", routes)
         .manage(db)
         .launch();
+
+    Ok(())
 }

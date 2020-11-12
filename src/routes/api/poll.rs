@@ -2,7 +2,6 @@ use rocket::*;
 use rocket_contrib::json;
 use rocket::State;
 
-use mongodb::{bson::doc, sync::Database, bson::oid::ObjectId};
 use serde::Deserialize;
 
 #[derive(Deserialize)]
@@ -13,54 +12,45 @@ pub struct Poll {
 }
 
 #[post("/api/poll", format = "application/json", data = "<poll>")]
-pub fn post(client: State<Database>, poll: json::Json<Poll>) -> json::JsonValue {
-    let poll_collection = client.collection("polls");
+pub fn post(database: State<dino::Database>, poll: json::Json<Poll>) -> json::JsonValue {
+    let mut poll_main = dino::Tree::new();
+    let poll_id = uuid::Uuid::new_v4().to_string();
 
-    let val = poll.into_inner();
+    poll_main.insert("question", poll.question.as_str());
+    poll_main.insert("description", poll.description.as_str());
 
-    let mut document = doc!{
-        "question": val.question,
-        "description": val.description,
+    let mut poll_options = dino::Tree::new();
+    let mut poll_options_values = dino::Tree::new();
+
+    for choice in &poll.options {
+        poll_options_values.insert_number(choice, 1);
     };
 
-    let mut options = doc!{};
+    poll_options.insert_tree("values", poll_options_values);
+    poll_options.insert_array("ips", vec![]);
 
-    for choice in val.options {
-        options.insert(choice, 1);
-    };
+    poll_main.insert_tree("options", poll_options);
 
-    document.insert("options", doc! {
-        "types": options,
-        "ips": []
-    });
-
-    let inserted = poll_collection.insert_one(document, None).unwrap();
-    let id = inserted.inserted_id.as_object_id().unwrap().to_string();
+    database.insert_tree(poll_id.as_str(), poll_main);
 
     return json!({
         "status": "success",
-        "id": &id
+        "id": poll_id
     });
 }
 
 #[get("/api/poll/<id>")]
-pub fn get(client: State<Database>, id: String) -> json::JsonValue {
-    let poll_collection = client.collection("polls");
+pub fn get(database: State<dino::Database>, id: String) -> json::JsonValue {
+    let poll_main = database.find(id.as_str());
 
-    let res = poll_collection.find_one(Some(
-        doc! {
-            "_id": ObjectId::with_string(id.as_str()).unwrap()
-        }
-    ), None);
-
-    match res {
+    match poll_main {
         Ok(val) => {
-            let result = val.unwrap();
+            let result = val.to_tree();
 
             return json!({
-                "question": result.get("question"),
-                "description": result.get("description"),
-                "options": result.get("options").unwrap().as_document().unwrap().get("types")
+                "question": result.find("question").unwrap().to_string(),
+                "description": result.find("description").unwrap().to_string(),
+                "options": result.find("options").unwrap().to_tree().find("values").unwrap().to_json()
             })
         }
 
