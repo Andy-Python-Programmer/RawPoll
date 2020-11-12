@@ -12,19 +12,13 @@ serde_json = "1.0.59"
 dotenv = "0.15.0"
 futures = "0.3"
 serde = "1.0.117"
-# indexmap = { version = "1.6.0", features = ["serde-1"] }
 async-tungstenite = { version = "*", features = ["tokio-runtime"] }
 tokio = { version = "0.3.3", features = ["macros", "net", "rt-multi-thread"]}
-# dino = { git = "https://github.com/Andy-Python-Programmer/dino" }
-dino = { path = "C:\\Users\\user\\Desktop\\Andy\\Rust\\dino" }
+dino = { git = "https://github.com/Andy-Python-Programmer/dino" }
+# dino = { path = "C:\\Users\\user\\Desktop\\Andy\\Rust\\dino" }
 uuid = { version = "0.8", features = ["v4"] }
 
 [dependencies.rocket_contrib]
 version = "0.4.5"
 default-features = false
 features = ["json"]
-
-[dependencies.mongodb]
-version = "1.1.1"
-default-features = false
-features = ["sync"]
