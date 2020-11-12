@@ -11,7 +11,7 @@ rocket = "0.4.5"
 serde_json = "1.0.59"
 dotenv = "0.15.0"
 futures = "0.3"
-serde = "1.0.117"
+serde = { version = "1.0.117", features = ["serde_derive"] }
 async-tungstenite = { version = "*", features = ["tokio-runtime"] }
 tokio = { version = "0.3.3", features = ["macros", "net", "rt-multi-thread"]}
 dino = { git = "https://github.com/Andy-Python-Programmer/dino" }
