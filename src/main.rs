@@ -39,10 +39,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         routes::api::vote::post
     ];
 
-    let port: u16 = 8000;
-    let server = TcpListener::bind(format!("127.0.0.1:{}", port)).await?;
+    let app: rocket::Rocket = rocket::ignite();
 
+    let port: u16 = 8000;
+    let address = &app.config().address;
+    let server = TcpListener::bind(format!("{}:{}", address, port)).await?;
+    
+    run_websocket(server).await;
+
+    let mut db: dino::Database = dino::Database::new("polls.json");
+
+    db.load();
+
+    app
+        .mount("/", routes)
+        .manage(db)
+        .launch();
+
+    Ok(())
+}
+
+async fn run_websocket(server: TcpListener) {
     spawn(async move {
+        println!("WebSocket server started!");
+
         loop {
             match server.accept().await {
                 Ok((socket, addr)) => {
@@ -60,16 +80,4 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
         }
     });
-
-    let app: rocket::Rocket = rocket::ignite();
-    let mut db: dino::Database = dino::Database::new("polls.json");
-
-    db.load();
-
-    app
-        .mount("/", routes)
-        .manage(db)
-        .launch();
-
-    Ok(())
 }
