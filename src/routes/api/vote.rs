@@ -3,11 +3,7 @@ use std::net::{IpAddr, SocketAddr};
 use rocket::*;
 use rocket_contrib::json;
 
-use indexmap::IndexMap;
-
-use mongodb::{bson::doc, bson::oid::ObjectId, sync::Database};
-
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 
 #[derive(Deserialize)]
 pub struct PollOption {
@@ -15,27 +11,23 @@ pub struct PollOption {
     option: String
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-struct PollDocument {
-    types: IndexMap<String, isize>,
-    ips: Vec<String>
-}
-
 #[post("/api/vote", format = "application/json", data = "<poll>")]
-pub fn post(remote_addr: SocketAddr, client: State<Database>, poll: json::Json<PollOption>) -> json::JsonValue {
-    let poll_collection = client.collection("polls");
-    
-    let res = poll_collection.find_one(Some(
-        doc! {
-            "_id": ObjectId::with_string(poll.id.as_str()).unwrap()
-        }
-    ), None);
+pub fn post(remote_addr: SocketAddr, database: State<dino::Database>, poll: json::Json<PollOption>) -> json::JsonValue {
+    let poll_main = database.find(poll.id.as_str());
 
-    match res {
+    match poll_main {
         Ok(val) => {
-            let mut result = val.unwrap();
-            let mut poll_doc: PollDocument = mongodb::bson::from_bson(result.get("options").unwrap().to_owned()).unwrap();
-            
+            let mut value = val.to_tree();
+            let mut options_tree = value.find("options").unwrap().to_tree();
+            let mut poll_doc = options_tree.find("values").unwrap().to_tree();
+
+            if !poll_doc.contains_key(poll.option.as_str()) {
+                return json!({
+                    "status": "failure",
+                    "error": "Cannot find the poll option specified!"
+                })
+            }
+
             let user_ip: String;
 
             match remote_addr.ip() {
@@ -47,14 +39,7 @@ pub fn post(remote_addr: SocketAddr, client: State<Database>, poll: json::Json<P
                 }
             }
 
-            if !poll_doc.types.contains_key(&poll.option) {
-                return json!({
-                    "status": "failure",
-                    "error": "Cannot find the poll option specified!"
-                })
-            }
-
-            for ip in poll_doc.ips.iter() {
+            for ip in value.find("options").unwrap().to_tree().find("ips").unwrap().to_vec().iter() {
                 if ip == &user_ip {
                     return json!({
                         "status": "failure",
@@ -63,23 +48,20 @@ pub fn post(remote_addr: SocketAddr, client: State<Database>, poll: json::Json<P
                 }
             }
 
-            let prev_poll_val = &poll_doc.types.get(&poll.option).unwrap();
-            let update_val = **prev_poll_val + 1;
+            let poll_cout = poll_doc.find(poll.option.as_str()).unwrap().to_number();
+            let mut poll_ips: Vec<String> = options_tree.find("ips").unwrap().to_vec();
 
-            poll_doc.ips.push(user_ip);
-            poll_doc.types.insert(String::from(&poll.option), update_val);
+            poll_ips.push(user_ip);
 
-            let redacted_poll = mongodb::bson::to_bson(&poll_doc).unwrap();
+            poll_doc.insert_number(poll.option.as_str(), poll_cout + 1);
+            options_tree.insert_tree("values", poll_doc);
+            options_tree.insert_array("ips",  poll_ips.iter().map(|s| { let s: &str = s; s }).collect());
+            value.insert_tree("options", options_tree);
 
-            result.insert("options", redacted_poll);
-
-            poll_collection.update_one(
-                doc! {
-                    "_id": ObjectId::with_string(poll.id.as_str()).unwrap()
-                }, result, None).unwrap();
+            database.insert_tree(poll.id.as_str(), value);
 
             return json!({
-                "status": "success",
+                "status": "success"
             })
         }
 
