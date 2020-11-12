@@ -41,7 +41,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app: rocket::Rocket = rocket::ignite();
 
-    let port: u16 = 8000;
+    let port: &u16 = &app.config().port;
     let address = &app.config().address;
     let server = TcpListener::bind(format!("{}:{}", address, port)).await?;
     
