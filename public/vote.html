@@ -9,7 +9,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <a class="navbar-brand" href="/">
-            <img src="/static/images/logo.svg" width="35px" alt="">
+            <img src="/images/logo.svg" width="35px" alt="">
             Raw Poll
         </a>
         <div class="collapse navbar-collapse" id="navbarNav">
@@ -21,10 +21,15 @@
         </div>
     </nav>
 
-    <div>
-        <form class="opts">
-
-        </form>
+    <div class="jumbotron">
+        <center>
+            <div class="title display-4"></div>
+        </center>
+        <div class="description lead"></div>
+        <br>
+        <div class="lead">Choose one answer:</div>
+        <form class="opts"></form>
+        <br>
         <button class="btn btn-primary submit">Submit</button>
     </div>
 
@@ -34,16 +39,21 @@
         id = id[id.length - 1]
 
         const opts = document.querySelector(".opts");
+        const title = document.querySelector(".title");
+        const description = document.querySelector(".description");
 
         fetch("/api/poll/" + id)
             .then(
                 response => {
-                    response.json().then(function(data) {
+                    response.json().then(data => {
+                        title.innerHTML = data.question;
+                        description.innerHTML = "<strong>" + data.description + "</strong>";
+
                         Object.entries(data.options).forEach(element => {
                             const [key, value] = element;
                             
                             opts.innerHTML += `
-                            <input type="radio" name="choice" value="${key}">${key}
+                            <input type="radio" name="choice" value="${key}" style="margin-right: 5px" >${key}
                             <br>
                             `
                         })
@@ -80,8 +90,16 @@
 
                 xhr.onload = () => {
                     const body = document.querySelector("body");
+                    const json = JSON.parse(xhr.responseText);
 
-                    body.innerHTML += xhr.responseText;
+                    if (json.error != null) {
+                        body.innerHTML += `
+                        <div class="alert alert-danger" role="alert">
+                            <h4 class="alert-heading">Error!</h4>
+                            <hr>
+                            ${json.error}
+                        </div>`;
+                    }
                 }
             });
     </script>
