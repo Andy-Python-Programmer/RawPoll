@@ -1,13 +1,5 @@
 #![feature(proc_macro_hygiene, decl_macro)]
 
-use async_tungstenite::tungstenite::Message;
-
-use tokio::net::TcpListener;
-use tokio::spawn;
-
-use futures::SinkExt;
-use futures::executor::block_on;
-
 use rocket::fairing::AdHoc;
 
 mod routes {
@@ -44,10 +36,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let app: rocket::Rocket = rocket::ignite();
 
-    let port: &u16 = &app.config().port;
-    let address = &app.config().address;
-    let server = TcpListener::bind(format!("{}:{}", address, port)).await?;
-
     let mut db: dino::Database = dino::Database::new("polls.json");
 
     db.load();
@@ -56,32 +44,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .mount("/", routes)
         .manage(db)
         .attach(AdHoc::on_launch("Socket Server", |_| {
-            block_on(run_websocket(server));
+            println!("Rocket is launched! Loading Database Was Success");
         }))
         .launch();
 
     Ok(())
-}
-
-async fn run_websocket(server: TcpListener) {
-    spawn(async move {
-        println!("WebSocket server started!");
-
-        loop {
-            match server.accept().await {
-                Ok((socket, addr)) => {
-                    let mut ws_stream = async_tungstenite::tokio::accept_async(socket)
-                        .await
-                        .expect("Error during the websocket handshake occurred");
-
-                    ws_stream.send(Message::Text("OK".to_owned())).await.unwrap();
-
-                    println!("New client: {:?}", addr);
-                },
-                Err(e) => {
-                    println!("Couldn't get client: {:?}", e);
-                },
-            }
-        }
-    });
 }
