@@ -6,6 +6,9 @@ use tokio::net::TcpListener;
 use tokio::spawn;
 
 use futures::SinkExt;
+use futures::executor::block_on;
+
+use rocket::fairing::AdHoc;
 
 mod routes {
     pub mod public;
@@ -52,9 +55,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     app
         .mount("/", routes)
         .manage(db)
+        .attach(AdHoc::on_launch("Socket Server", |_| {
+            block_on(run_websocket(server));
+        }))
         .launch();
-
-    run_websocket(server).await;
 
     Ok(())
 }
