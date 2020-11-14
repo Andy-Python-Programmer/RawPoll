@@ -23,7 +23,7 @@ pub fn post(database: State<dino::Database>, poll: json::Json<Poll>) -> json::Js
     let mut poll_options_values = dino::Tree::new();
 
     for choice in &poll.options {
-        poll_options_values.insert_number(choice, 1);
+        poll_options_values.insert_number(choice, 0);
     };
 
     poll_options.insert_tree("values", poll_options_values);

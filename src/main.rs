@@ -43,7 +43,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     app
         .mount("/", routes)
         .manage(db)
-        .attach(AdHoc::on_launch("Socket Server", |_| {
+        .attach(AdHoc::on_launch("Start", |_| {
             println!("Rocket is launched! Loading Database Was Success");
         }))
         .launch();
