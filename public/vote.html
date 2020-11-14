@@ -33,6 +33,8 @@
         <button class="btn btn-primary submit">Submit</button>
     </div>
 
+    <button class="btn btn-outline-primary results" style="margin-left: 20px;">Results</button>
+
     <script>
         let id = window.location.pathname.split("/");
 
@@ -62,6 +64,13 @@
             );
 
             const submitOpt = document.querySelector(".submit");
+            const resultsButton = document.querySelector(".results");
+
+            resultsButton.addEventListener("click", (event) => {
+                event.preventDefault();
+
+                window.location.replace(window.location.pathname.replace("vote", "poll"));
+            })
 
             submitOpt.addEventListener("click", (event) => {
                 event.preventDefault();
