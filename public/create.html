@@ -50,6 +50,11 @@
                 </div>
                 <label for="opts">Options</label>
                 <div class="options-all"></div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="ip-check">
+                    <label class="custom-control-label" for="ip-check">IP Check</label>
+                </div>
+                <br>
                 <button class="btn btn-primary submit">Submit</button>
             </form>
         </center>
@@ -114,10 +119,11 @@
         const submitPoll = document.querySelector(".submit");
 
         submitPoll.addEventListener("click", (event) => {
-            event.preventDefault()
+            event.preventDefault();
 
-            var values = []
+            var values = [];
 
+            const ipCheck = document.querySelector("#ip-check").checked;
             const description = document.querySelector(".description").value;
             const question = document.querySelector(".question").value;
             
@@ -130,9 +136,12 @@
             })
 
             const data = {
-                question: question,
-                description: description,
-                options: values
+                "question": question,
+                "description": description,
+                "options": values,
+                "settings": {
+                    "ip-check": ipCheck
+                }
             }
 
             var xhr = new XMLHttpRequest();
