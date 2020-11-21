@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es5",                          /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */
+    "lib": ["es2017", "dom", "dom.iterable"],
+    "target": "es6",                          /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019', 'ES2020', or 'ESNEXT'. */
     "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', 'es2020', or 'ESNext'. */
     "outDir": "./static/javascript",          /* Redirect output structure to the directory. */
     "rootDir": "./typescript",                /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
