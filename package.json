@@ -1,0 +1,17 @@
+{
+  "name": "rawpoll",
+  "version": "0.0.1",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andy-Python-Programmer/RawPoll.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Andy-Python-Programmer/RawPoll/issues"
+  },
+  "homepage": "https://github.com/Andy-Python-Programmer/RawPoll#readme"
+}
