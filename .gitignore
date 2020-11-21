@@ -1,6 +1,6 @@
 /target
 /node_modules
-/static/javascript/
+/static/javascript
 
 .env
 polls.json
