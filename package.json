@@ -13,5 +13,8 @@
   "bugs": {
     "url": "https://github.com/Andy-Python-Programmer/RawPoll/issues"
   },
-  "homepage": "https://github.com/Andy-Python-Programmer/RawPoll#readme"
+  "homepage": "https://github.com/Andy-Python-Programmer/RawPoll#readme",
+  "devDependencies": {
+    "typescript": "^4.1.2"
+  }
 }

@@ -1,1 +1,1 @@
-web: npm install -g typescript && tsc && ROCKET_PORT=$PORT ROCKET_ENV=prod ./target/release/raw-poll
+web: npm build && ROCKET_PORT=$PORT ROCKET_ENV=prod ./target/release/raw-poll
